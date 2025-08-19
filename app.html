@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SoulSync App</title>
+<style>
+body{background:#0b1220;color:#e8ecf2;font-family:system-ui,Segoe UI,Arial}
+.chat{max-width:900px;margin:32px auto;padding:0 24px 64px}
+.row{display:flex;gap:8px;margin-top:10px}
+.bubble{padding:12px 14px;border:1px solid #273142;border-radius:12px;background:#121826;margin:6px 0;max-width:720px}
+.me{border-color:#334155}.bot{border-color:#7c3aed}
+input{flex:1;padding:12px;border-radius:10px;border:1px solid #2a3340;background:#0f141b;color:#e8ecf2}
+button{padding:10px 14px;border-radius:10px;border:1px solid #2a3340;background:#111827;color:#e8ecf2}
+</style></head><body>
+<main class="chat">
+<h1>Talk to your SoulSync</h1>
+<div id="log"></div>
+<div class="row">
+  <input id="text" placeholder="Type a message…"/>
+  <button id="send">Send</button>
+</div>
+</main>
+<script>
+const log=document.getElementById('log'),text=document.getElementById('text'),send=document.getElementById('send');
+const messages=[{role:'system',content:'You are SoulSync, a caring, supportive companion.'}];
+function add(msg,me=false){const d=document.createElement('div');d.className='bubble '+(me?'me':'bot');d.textContent=msg;log.appendChild(d);log.scrollTop=log.scrollHeight;}
+async function chatSend(t){
+  if(!t) return; add(t,true); messages.push({role:'user',content:t});
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages})});
+    const data=await r.json();
+    if(!r.ok||data.error){add('⚠️ '+(data.error||'Server error'));return;}
+    const ans=data.answer||'(empty answer)'; add(ans); messages.push({role:'assistant',content:ans});
+  }catch(e){add('⚠️ Network error: '+e.message);}
+}
+send.onclick=()=>{chatSend(text.value); text.value='';};
+</script></body></html>
